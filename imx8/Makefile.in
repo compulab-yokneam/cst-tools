@@ -1,12 +1,9 @@
 all: build
 
-keys/hab4_pki_tree.sh:
-	ln -sf ../tools/hab4_pki_tree.sh keys/hab4_pki_tree.sh
-
-crts/SRK1_sha256_2048_65537_v3_ca_crt.pem: tools/gen_keys.sh keys/hab4_pki_tree.sh
+crts/SRK1_sha256_2048_65537_v3_ca_crt.pem:
 	cd keys && ../tools/gen_keys.sh
 	
-crts/SRK_1_2_3_4_*.bin: crts/SRK1_sha256_2048_65537_v3_ca_crt.pem linux64/bin/srktool tools/gen_srk.sh
+crts/SRK_1_2_3_4_*.bin: crts/SRK1_sha256_2048_65537_v3_ca_crt.pem
 	cd crts && ../tools/gen_srk.sh
 
 srk:	crts/SRK_1_2_3_4_*.bin
