@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-help_string="Available valuses are: imx8, imx7"
+help_string="Available values are: imx8, imx7"
 
 DEST=${DEST:-$(pwd)}
 SRC=${SRC:-$(pwd)}
