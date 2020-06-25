@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 help_string="Available values are: imx8, imx7"
 
