@@ -7,6 +7,8 @@ This tool uses: [NXP Code Signing Tools](https://www.nxp.com/webapp/Download?col
 Supported machines:
 * ucm-imx8m-mini
 * mcm-imx8m-mini
+* iot-gate-imx8
+
 
 # How to use
 
