@@ -31,7 +31,7 @@ imx-boot input files
         make SOC=iMX8MM flash_evk 2>&1 | tee flash_evk.log
         make SOC=iMX8MM print_fit_hab 2>&1 | tee print_fit_hab.log
         copy flash.bin, flash_evk.log and print_fit_hab.log to hab/
-        details: https://github.com/compulab-yokneam/meta-bsp-imx8mm/blob/mcm-imx8m-mini/Documentation/imx_boot_image_build.md
+        details: https://github.com/compulab-yokneam/meta-bsp-imx8mm/blob/rel_imx_5.4.24_2.1.0-dev/Documentation/imx_boot_image_build.md
 
 imx-boot signing procedure:
         make imx-boot
@@ -41,7 +41,7 @@ kernel signing input fies
         in the kernel build directory issue:
         make Image
         copy Image hab/
-        details: https://github.com/compulab-yokneam/meta-bsp-imx8mm/blob/mcm-imx8m-mini/Documentation/linux_kernel_build.md
+        details: https://github.com/compulab-yokneam/meta-bsp-imx8mm/blob/rel_imx_5.4.24_2.1.0-dev/Documentation/linux_kernel_build.md
 
 kernel signing procedure:
         make kernel
@@ -53,7 +53,7 @@ fuse values generating procedure:
 ```
 
 ## Input files:
-Follow instructions of: [imx-boot image buid](https://github.com/compulab-yokneam/meta-bsp-imx8mm/edit/mcm-imx8m-mini/Documentation/imx_boot_image_build.md) and [kerne image buil](https://github.com/compulab-yokneam/meta-bsp-imx8mm/blob/mcm-imx8m-mini/Documentation/linux_kernel_build.md)
+Follow instructions of: [imx-boot image buid](https://github.com/compulab-yokneam/meta-bsp-imx8mm/blob/rel_imx_5.4.24_2.1.0-dev/Documentation/imx_boot_image_build.md) and [kerne image buil](https://github.com/compulab-yokneam/meta-bsp-imx8mm/blob/rel_imx_5.4.24_2.1.0-dev/Documentation/linux_kernel_build.md)
 and prepare and copy all rquired input files. When all files are at `hab` folder, then issue:
 
 * Kernel signing
