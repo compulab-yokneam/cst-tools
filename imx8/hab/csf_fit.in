@@ -17,6 +17,11 @@
 
 [Authenticate CSF]
 
+[Unlock]
+    # Leave Job Ring and DECO master ID registers Unlocked
+    Engine = CAAM
+    Features = MFG
+    
 [Install Key]
     # Key slot index used to authenticate the key to be installed
     Verification index = 0
