@@ -33,6 +33,9 @@ srk:	crts/SRK_1_2_3_4_*.bin
 hab/signed/k hab/signed/u hab/signed/f: crts/SRK_1_2_3_4_*.bin
 	cd hab && ../tools/csf.$(@F)
 
+hab/signed/uefi/signed: crts/SRK_1_2_3_4_*.bin
+	cd hab && ../tools/csf.$(shell basename $(@D))
+
 sign_req: srk linux64/bin/cst
 
 kernel_in: hab/Image hab/csf_additional_images.in
@@ -42,6 +45,8 @@ imx-boot_in: hab/flash.bin hab/flash_evk.log hab/print_fit_hab.log hab/csf_fit.i
 imx-boot: sign_req imx-boot_in hab/signed/u
 
 fuse: srk crts/SRK_1_2_3_4_*.bin hab/signed/f
+
+uefi: srk crts/SRK_1_2_3_4_*.bin hab/signed/uefi/signed
 
 clean:
 	rm -rf hab/signed
@@ -54,4 +59,4 @@ clean_all: clean clean_keys
 clean_yocto:
 	rm -rf ca crts linux64 keys tools hab
 
-build: kernel imx-boot fuse
+build: kernel imx-boot uefi fuse
