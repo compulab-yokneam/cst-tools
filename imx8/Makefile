@@ -40,7 +40,7 @@ hab/signed/k/signed: crts/SRK_1_2_3_4_*.bin
 	cd hab && ../tools/csf.k
 
 hab/signed/kgrub/signed: crts/SRK_1_2_3_4_*.bin
-	cd hab && kload=0xcd74d000 kout=$(shell basename $(@D)) ../tools/csf.k
+	cd hab && kload=0x4e726000 kout=$(shell basename $(@D)) ../tools/csf.k
 
 sign_req: srk linux64/bin/cst
 
