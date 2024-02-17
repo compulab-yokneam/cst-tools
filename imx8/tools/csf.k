@@ -11,10 +11,12 @@ eom
 exit 1
 fi
 
-O=${SOC}/signed/k
+kout=${kout:-k}
+kload=${kload:-0x40480000}
+
+O=${SOC}/signed/${kout}
 install -d ${O}
 
-kload=0x40480000
 # tload=0x43000000
 
 ifile=Image
