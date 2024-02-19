@@ -78,34 +78,55 @@ make
 
 ## Signed files directory layout:
 ```
-hab
-├── csf_additional_images.in
-├── csf_fit.in
-├── csf_spl.in
-├── flash.bin
-├── flash_evk.log
-├── Image
-├── print_fit_hab.log
-└── signed
-    ├── f
-    │   └── fuse.out
-    ├── k
-    │   ├── csf_additional_images.in
-    │   ├── genivt
-    │   ├── hab_auth_img.cmd
-    │   ├── Image
-    │   ├── Image_csf
-    │   ├── Image_pad
-    │   ├── Image_pad_ivt
-    │   ├── ivt.bin
-    │   └── signed -> Image
-    └── u
-        ├── csf_fit.bin
-        ├── csf_fit.txt
-        ├── csf_spl.bin
-        ├── csf_spl.txt
-        ├── flash.bin
-        └── signed -> flash.bin
+1 hab
+2 ├── Image
+3 ├── bootaa64.efi
+4 ├── csf_additional_images.in
+5 ├── csf_fit.in
+6 ├── csf_spl.in
+7 ├── flash.bin
+8 ├── flash_evk.log
+9 ├── print_fit_hab.log
+10 └── signed
+11     ├── f
+12     │   └── fuse.out
+13     ├── k
+14     │   ├── Image  --- Signed Linux Image for U-Boot <#1-partition>/Image
+15     │   ├── Image_csf
+16     │   ├── Image_pad
+17     │   ├── Image_pad_ivt
+18     │   ├── csf_additional_images.in
+19     │   ├── genivt
+20     │   ├── hab_auth_img.cmd
+21     │   ├── ivt.bin
+22     │   └── signed -> Image
+23     ├── kgrub
+24     │   ├── Image --- Signed Linux Image for GRUB <#2-partition>/boot/Image
+25     │   ├── Image_csf
+26     │   ├── Image_pad
+27     │   ├── Image_pad_ivt
+28     │   ├── csf_additional_images.in
+29     │   ├── genivt
+30     │   ├── hab_auth_img.cmd
+31     │   ├── ivt.bin
+32     │   └── signed -> Image
+33     ├── u
+34     │   ├── csf_fit.bin
+35     │   ├── csf_fit.txt
+36     │   ├── csf_spl.bin
+37     │   ├── csf_spl.txt
+38     │   ├── flash.bin --- Signed bootloader
+39     │   └── signed -> flash.bin
+40     └── uefi
+41         ├── bootaa64.efi --- Signed grub loader <#1-partition>/EFI/BOOT/bootaa64.efi
+42         ├── bootaa64.efi_csf
+43         ├── bootaa64.efi_pad
+44         ├── bootaa64.efi_pad_ivt
+45         ├── csf_additional_images.in
+46         ├── genivt
+47         ├── hab_auth_img.cmd
+48         ├── ivt.bin
+49         └── signed -> bootaa64.efi
 ```
 
 * Clean up
