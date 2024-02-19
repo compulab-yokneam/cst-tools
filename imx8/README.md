@@ -8,6 +8,8 @@ Supported machines:
 * ucm-imx8m-mini
 * mcm-imx8m-mini
 * iot-gate-imx8
+* ucm-imx8m-plus
+* iot-gate-imx8plus
 
 
 # How to use
