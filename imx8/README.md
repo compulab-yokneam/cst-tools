@@ -10,7 +10,7 @@ Supported machines:
 * iot-gate-imx8
 * ucm-imx8m-plus
 * iot-gate-imx8plus
-* iot-din-imx8plus
+* iotdin-imx8p
 
 # How to use
 
