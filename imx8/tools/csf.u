@@ -17,7 +17,7 @@ fi
 ifile=flash.bin
 ofile=${ifile}
 
-eval $(awk  -F":" '(/hab block/)&&(gsub(/ /,"_",$1))&&($0=$1"=\""$2"\"")' ${SOC}/flash_evk.log)
+eval $(awk  -F":" '(!/fdt/&&/hab block/)&&(gsub(/ /,"_",$1))&&(gsub(/^[ \t]+/,"",$2))&&($0=$1"=\""$2"\"")' ${SOC}/flash_evk.log)
 
 _spl_hab_block+=" \"${SOC}/${ifile}\""
 _sld_hab_block+=" \"${SOC}/${ifile}\""
@@ -30,7 +30,7 @@ blocks=$(awk -v SOC=${SOC} -v ifile=${ifile} '(/^0x/)&&($0=","$0" \""SOC"/"ifile
 ${CST} -i ${O}/csf_spl.txt -o ${O}/csf_spl.bin
 ${CST} -i ${O}/csf_fit.txt -o ${O}/csf_fit.bin
 
-eval $(awk '(/csf_off|sld_csf_off/)&&($0=$1"="$2)' ${SOC}/flash_evk.log) 
+eval $(awk '(/csf_off|sld_csf_off/)&&(gsub(/ /,"_",$1))&&($0=$1"="$2)' ${SOC}/flash_evk.log)
 
 cp ${SOC}/${ifile} ${O}/${ofile}
 
