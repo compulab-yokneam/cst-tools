@@ -30,11 +30,14 @@ crts/SRK_1_2_3_4_*.bin: crts/SRK1_sha256_2048_65537_v3_ca_crt.pem
 
 srk:	crts/SRK_1_2_3_4_*.bin
 
-hab/signed/u hab/signed/f: crts/SRK_1_2_3_4_*.bin
+hab/signed/f: crts/SRK_1_2_3_4_*.bin
 	cd hab && ../tools/csf.$(@F)
 
 hab/signed/uefi/signed: crts/SRK_1_2_3_4_*.bin
 	cd hab && ../tools/csf.$(shell basename $(@D))
+
+hab/signed/u/signed: crts/SRK_1_2_3_4_*.bin
+	cd hab && ../tools/csf.u
 
 hab/signed/k/signed: crts/SRK_1_2_3_4_*.bin
 	cd hab && ../tools/csf.k
@@ -47,8 +50,8 @@ sign_req: srk linux64/bin/cst
 kernel_in: hab/Image hab/csf_additional_images.in
 kernel:	sign_req kernel_in hab/signed/k/signed hab/signed/kgrub/signed
 
-imx-boot_in: hab/flash.bin hab/flash_evk.log hab/print_fit_hab.log hab/csf_fit.in hab/csf_spl.in
-imx-boot: sign_req imx-boot_in hab/signed/u
+imx-boot_in: hab/flash.bin hab/csf_fit.in hab/csf_spl.in
+imx-boot: sign_req imx-boot_in hab/signed/u/signed
 
 fuse: srk crts/SRK_1_2_3_4_*.bin hab/signed/f
 

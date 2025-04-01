@@ -25,13 +25,11 @@ fi
 
 do_configure () {
     install -d ${DEST}/cst-tools
-    tar -C ${DEST}/cst-tools -xf ${SRC}/nxp/cst-3.3.0.tgz --strip-components=1 release/linux64 release/keys release/crts release/ca
+    tar -C ${DEST}/cst-tools -xf ${SRC}/nxp/cst-4.0.0.tgz --strip-components=1 cst-4.0.0/linux64 cst-4.0.0/keys cst-4.0.0/crts cst-4.0.0/ca
 
-    for d in Makefile hab tools;do
+    for d in env Makefile hab tools;do
         cp -a ${SRC}/${SOC}/${d} ${DEST}/cst-tools/
     done
-
-    cp -a ${DEST}/cst-tools//keys/hab4_pki_tree.sh ${DEST}/cst-tools/tools
 }
 
 do_configure

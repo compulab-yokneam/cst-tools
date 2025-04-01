@@ -1,8 +1,1 @@
-cat << eof | $(pwd)/../keys/hab4_pki_tree.sh
-n
-n
-2048
-5
-4
-y
-eof
+$(pwd)/../keys/hab4_pki_tree.sh -existing-ca n -kt rsa -kl 2048 -duration 10 -num-srk 4 -srk-ca y
