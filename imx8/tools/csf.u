@@ -1,4 +1,4 @@
-#!/bin/bash -xe
+#!/bin/bash -ex
 
 SOC=$(pwd)
 CST=../linux64/bin/cst
@@ -6,65 +6,41 @@ O=${SOC}/signed/u
 
 install -d ${O}
 
-ofile="flash.bin"
+command -v ${CST} &>/dev/null
+if [[ $? -ne 0 ]];then
+cat << eom
+"${CST} - binary is missing, exiting ..."
+eom
+exit 1
+fi
 
-cp ${ofile} ${ofile}.orig
+ifile=flash.bin
+cp ${ifile} ${O}/${ifile}
+ofile=${O}/${ifile}
 
-cp csf_spl.in csf_spl.tmp
-cp csf_fit.in csf_fit.tmp
+eval $(awk  -F":" '(/hab block/)&&(gsub(/ |-/,"_",$1))&&(gsub(/^[ \t]+/,"",$2))&&($0=$1"=\""$2"\"")' ${SOC}/flash_evk.log)
 
-# update SPL Blocks
-spl_block_base=$(printf "0x%x" $(( $(sed -n "/CONFIG_SPL_TEXT_BASE=/ s@.*=@@p" .config) - 0x40)) )
-spl_block_size=$(printf "0x%x" $(stat -tc %s u-boot-spl-ddr.bin))
-sed -i "/Blocks = / s@.*@  Blocks = $spl_block_base 0x0 $spl_block_size \"flash.bin\"@" csf_spl.tmp
+_spl_hab_block+=" \"${ofile}\""
+_sld_hab_block+=" \"${ofile}\""
+_fit_fdt_hab_block+=" \"${ofile}\""
 
-# Generate CSF blob
-${CST} -i csf_spl.tmp -o csf_spl.bin
+blocks=$(awk -v ofile=${ofile} '(/^0x/)&&($0=$0" \""ofile"\",\\")' ${SOC}/print_fit_hab.log)
 
-# Patch CSF blob into flash.bin
-spl_csf_offset=$(xxd -s 24 -l 4 -e flash.bin | cut -d " " -f 2 | sed "s@^@0x@")
-spl_bin_offset=$(xxd -s 4 -l 4 -e flash.bin | cut -d " " -f 2 | sed "s@^@0x@")
-spl_dd_offset=$((${spl_csf_offset} - ${spl_bin_offset} + 0x40))
-dd if=csf_spl.bin of=${ofile} bs=1 seek=${spl_dd_offset} conv=notrunc
+(cat ${SOC}/csf_fit.in ; cat <<< ${blocks}; cat <<< $_sld_hab_block ) > ${O}/csf_fit.txt
+(cat ${SOC}/csf_spl.in ; cat <<< $_spl_hab_block) > ${O}/csf_spl.txt
+(cat ${SOC}/csf_fit_fdt.in ; cat <<< $_fit_fdt_hab_block) > ${O}/csf_fit_fdt.txt
 
-# 3) Sign u-boot.itb
+eval $(awk '(/csf_off|sld_csf_off/)&&(!/fit-fdt/)&&($0=$1"="$2)' ${SOC}/flash_evk.log)
+eval $(awk '(/csf_off|sld_csf_off/)&&(!/fit-fdt/)&&($0=$1"="$2)' ${SOC}/flash_evk.log)
+eval $(awk '(/fit-fdt csf_off/)&&($0="fit_fdt_csf_off="$NF)' ${SOC}/flash_evk.log)
 
-# fitImage
-fit_block_base=$(printf "0x%x" $(sed -n "/CONFIG_SPL_LOAD_FIT_ADDRESS=/ s@.*=@@p" .config) )
-fit_block_offset=$(printf "0x%s" $(fdtget -t x u-boot.dtb /binman/imx-boot/blob-ext@2 offset))
-fit_block_size=$(printf "0x%x" $(( ( ( $(stat -tc %s u-boot.itb) + 0x1000 - 0x1 ) & ~(0x1000 - 0x1)) + 0x20 )) )
-sed -i "/Blocks = / s@.*@  Blocks = $fit_block_base $fit_block_offset $fit_block_size \"flash.bin\"@" csf_fit.tmp
+${CST} -i ${O}/csf_spl.txt -o ${O}/csf_spl.bin
+dd if=${O}/csf_spl.bin of=${ofile} seek=$((${csf_off})) bs=1 conv=notrunc
 
-# IVT
-ivt_ptr_base=$(printf "%08x" ${fit_block_base} | sed "s@\(..\)\(..\)\(..\)\(..\)@0x\4\3\2\1@")
-ivt_block_base=$(printf "%08x" $(( ${fit_block_base} + ${fit_block_size} - 0x20 )) | sed "s@\(..\)\(..\)\(..\)\(..\)@0x\4\3\2\1@")
-csf_block_base=$(printf "%08x" $(( ${fit_block_base} + ${fit_block_size} )) | sed "s@\(..\)\(..\)\(..\)\(..\)@0x\4\3\2\1@")
-ivt_block_offset=$((${fit_block_offset} + ${fit_block_size} - 0x20))
-csf_block_offset=$((${ivt_block_offset} + 0x20))
+${CST} -i ${O}/csf_fit.txt -o ${O}/csf_fit.bin
+dd if=${O}/csf_fit.bin of=${ofile} seek=$((${sld_csf_off})) bs=1 conv=notrunc
 
-echo "0xd1002041 ${ivt_block_base} 0x00000000 0x00000000 0x00000000 ${ivt_block_base} ${csf_block_base} 0x00000000" | xxd -r -p > ivt.bin
-dd if=ivt.bin of=${ofile} bs=1 seek=${ivt_block_offset} conv=notrunc
+${CST} -i ${O}/csf_fit_fdt.txt -o ${O}/csf_fit_fdt.bin
+dd if=${O}/csf_fit_fdt.bin of=${ofile} seek=$((${fit_fdt_csf_off})) bs=1 conv=notrunc
 
-# Generate CSF blob
-${CST} -i csf_fit.tmp -o csf_fit.bin
-
-# When loading flash.bin via USB, we must ensure that the file being
-# served is as large as the target expects (see
-# board_spl_fit_size_align()), otherwise the target will hang in
-# rom_api_download_image() waiting for the remaining bytes.
-#
-# Note that in order for dd to actually extend the file, one must not
-# pass conv=notrunc here. With a non-zero seek= argument, dd is
-# documented to preserve the contents of the file seeked past; in
-# particular, dd does not open the file with O_TRUNC.
-CSF_SIZE=$(sed -n "/CONFIG_CSF_SIZE=/ s@.*=@@p" .config)
-dd if=/dev/null of=csf_fit.bin bs=1 seek=$((CSF_SIZE - 0x20)) count=0
-
-# Patch CSF blob into flash.bin
-dd if=csf_fit.bin of=${ofile} bs=1 seek=${csf_block_offset} conv=notrunc
-
-cp -v ${ofile} ${O}/
-pushd ${O}
-ln -sf ${ofile} signed
-popd
-mv ${ofile}.orig ${ofile}
+ln -sf $(basename ${ofile}) ${O}/signed
