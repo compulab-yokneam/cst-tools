@@ -1,3 +1,12 @@
+CONF := hab/.config
+
+ifeq ($(shell test -e ${CONF} && echo yes),)
+    $(error "U-Boot conf file is missing")
+endif
+
+LADDR := $(shell grep CONFIG_SYS_LOAD_ADDR ${CONF} | cut -d"=" -f 2)
+$(if $(LADDR),,$(error "CONFIG_SYS_LOAD_ADDR calculation failed"))
+
 all: build
 
 help:
@@ -33,22 +42,19 @@ srk:	crts/SRK_1_2_3_4_*.bin
 hab/signed/f: crts/SRK_1_2_3_4_*.bin
 	cd hab && ../tools/csf.$(@F)
 
-hab/signed/uefi/signed: crts/SRK_1_2_3_4_*.bin
-	cd hab && ../tools/csf.$(shell basename $(@D))
-
 hab/signed/u/signed: crts/SRK_1_2_3_4_*.bin
 	cd hab && ../tools/csf.u
 
-hab/signed/k/signed: crts/SRK_1_2_3_4_*.bin
-	cd hab && ../tools/csf.k
+hab/signed/uefi/signed: crts/SRK_1_2_3_4_*.bin
+	cd hab && kload=$(LADDR) kout=$(shell basename $(@D)) ifile="bootaa64.efi" kout=uefi ../tools/csf.raw
 
-hab/signed/kgrub/signed: crts/SRK_1_2_3_4_*.bin
-	cd hab && kload=0x58000000 kout=$(shell basename $(@D)) ../tools/csf.k
+hab/signed/k/signed: crts/SRK_1_2_3_4_*.bin
+	cd hab && kload=$(LADDR) kout=$(shell basename $(@D)) kout=k ../tools/csf.k
 
 sign_req: srk linux64/bin/cst
 
 kernel_in: hab/Image hab/csf_additional_images.in
-kernel:	sign_req kernel_in hab/signed/k/signed hab/signed/kgrub/signed
+kernel:	sign_req kernel_in hab/signed/k/signed
 
 imx-boot_in: hab/flash.bin hab/csf_fit.in hab/csf_spl.in
 imx-boot: sign_req imx-boot_in hab/signed/u/signed
