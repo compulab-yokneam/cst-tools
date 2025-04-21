@@ -80,15 +80,15 @@ make
 
 ## Signed files directory layout:
 ```
-1 hab
-2 ├── Image
-3 ├── bootaa64.efi
-4 ├── csf_additional_images.in
-5 ├── csf_fit.in
-6 ├── csf_spl.in
-7 ├── flash.bin
-8 ├── flash_evk.log
-9 ├── print_fit_hab.log
+1  hab
+2  ├── Image
+3  ├── bootaa64.efi
+4  ├── csf_additional_images.in
+5  ├── csf_fit.in
+6  ├── csf_spl.in
+7  ├── flash.bin
+8  ├── flash_evk.log
+9  ├── print_fit_hab.log
 10 └── signed
 11     ├── f
 12     │   └── fuse.out
@@ -102,16 +102,6 @@ make
 20     │   ├── hab_auth_img.cmd
 21     │   ├── ivt.bin
 22     │   └── signed -> Image
-23     ├── kgrub
-24     │   ├── Image --- Signed Linux Image for GRUB <#2-partition>/boot/Image
-25     │   ├── Image_csf
-26     │   ├── Image_pad
-27     │   ├── Image_pad_ivt
-28     │   ├── csf_additional_images.in
-29     │   ├── genivt
-30     │   ├── hab_auth_img.cmd
-31     │   ├── ivt.bin
-32     │   └── signed -> Image
 33     ├── u
 34     │   ├── csf_fit.bin
 35     │   ├── csf_fit.txt
