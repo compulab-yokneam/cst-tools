@@ -30,7 +30,7 @@ i_csfaddfile=csf_additional_images.in
 o_csfaddfile=${O}/${i_csfaddfile}
 genivt=${O}/genivt
 
-padsize=0x$(xxd -s 0x10 -g 0x4 -l 0x4 -e -u ${ifile} | awk '$0=$2')
+padsize=$(od --endian=little --skip-bytes=16 --read-bytes=4 --format=x ${ifile} | awk '($0="0x"$2)&&(NR==1)')
 objcopy -I binary -O binary --pad-to ${padsize} --gap-fill=0x00 ${ifile} ${padfile}
 
 ivt_off=$(printf 0x%x ${padsize})
