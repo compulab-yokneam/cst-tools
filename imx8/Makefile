@@ -67,9 +67,12 @@ clean:
 	rm -rf hab/signed
 
 clean_keys:
-	rm -rf crts/* keys/*
+	cd keys && rm -rf `ls | grep -v "\.sh"`
 
-clean_all: clean clean_keys
+clean_crts:
+	rm -rf crts/*
+
+clean_all: clean clean_keys clean_crts
 
 clean_yocto:
 	rm -rf ca crts linux64 keys tools hab
