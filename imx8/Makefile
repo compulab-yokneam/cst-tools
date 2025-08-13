@@ -51,7 +51,13 @@ hab/signed/uefi/signed: crts/SRK_1_2_3_4_*.bin
 hab/signed/k/signed: crts/SRK_1_2_3_4_*.bin
 	cd hab && kload=$(LADDR) kout=$(shell basename $(@D)) kout=k ../tools/csf.k
 
-sign_req: srk linux64/bin/cst
+linux64/bin/srktool:
+	mkdir -p linux64/bin && ln -s `which srktool` linux64/bin/srktool
+
+linux64/bin/cst:
+	mkdir -p linux64/bin && ln -s `which cst` linux64/bin/cst
+
+sign_req: srk linux64/bin/cst linux64/bin/srktool
 
 kernel_in: hab/Image hab/csf_additional_images.in
 kernel:	sign_req kernel_in hab/signed/k/signed
