@@ -1,7 +1,8 @@
 #!/bin/bash -ex
 
 SOC=$(pwd)
-CST=../linux64/bin/cst
+CST=$(which cst || true)
+CST=${CST:-"../linux64/bin/cst"}
 
 command -v ${CST} &>/dev/null
 if [[ $? -ne 0 ]];then
