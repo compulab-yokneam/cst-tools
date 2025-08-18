@@ -1,6 +1,6 @@
 #!/bin/bash
 
-help_string="Available values are: imx8, imx7"
+help_string="Available value is imx8"
 
 DEST=${DEST:-$(pwd)}
 SRC=${SRC:-$(pwd)}
@@ -13,7 +13,7 @@ eom
 exit 1
 fi
 
-if [[ ${SOC} == 'imx8' ]] || [[ ${SOC} == 'imx7' ]];then
+if [[ ${SOC} == 'imx8' ]];then
 :
 else
 cat << eom
@@ -27,7 +27,7 @@ do_configure () {
     install -d ${DEST}/cst-tools
     tar -C ${DEST}/cst-tools -xf ${SRC}/nxp/cst-4.0.0.tgz --strip-components=1 cst-4.0.0/linux64 cst-4.0.0/keys cst-4.0.0/crts cst-4.0.0/ca
 
-    for d in env Makefile hab tools;do
+    for d in Makefile hab tools;do
         cp -a ${SRC}/${SOC}/${d} ${DEST}/cst-tools/
     done
 }
