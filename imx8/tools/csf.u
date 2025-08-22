@@ -1,7 +1,8 @@
 #!/bin/bash -ex
 
 SOC=$(pwd)
-CST=../linux64/bin/cst
+#CST=$(which cst || true)
+CST=${CST:-"../linux64/bin/cst"}
 O=${SOC}/signed/u
 
 install -d ${O}
@@ -15,26 +16,27 @@ exit 1
 fi
 
 ifile=flash.bin
-ofile=${ifile}
+cp ${ifile} ${O}/${ifile}
+ofile=${O}/${ifile}
 
-eval $(awk  -F":" '(!/fdt/&&/hab block/)&&(gsub(/ /,"_",$1))&&(gsub(/^[ \t]+/,"",$2))&&($0=$1"=\""$2"\"")' ${SOC}/flash_evk.log)
+eval $(awk  -F":" '(/hab block/)&&(gsub(/ |-/,"_",$1))&&(gsub(/^[ \t]+/,"",$2))&&($0=$1"=\""$2"\"")' ${SOC}/flash_evk.log)
 
-_spl_hab_block+=" \"${SOC}/${ifile}\""
-_sld_hab_block+=" \"${SOC}/${ifile}\""
+_spl_hab_block+=" \"${ofile}\""
+_sld_hab_block+=" \"${ofile}\""
+_fit_fdt_hab_block+=" \"${ofile}\""
 
-blocks=$(awk -v SOC=${SOC} -v ifile=${ifile} '(/^0x/)&&($0=","$0" \""SOC"/"ifile"\"")' ORS=" " ${SOC}/print_fit_hab.log)
+blocks=$(awk -v ofile=${ofile} '(/^0x/)&&($0=$0" \""ofile"\",\\")' ${SOC}/print_fit_hab.log)
 
-(cat ${SOC}/csf_fit.in ; cat <<< $_sld_hab_block" \ " ; cat <<< ${blocks} ) > ${O}/csf_fit.txt
+(cat ${SOC}/csf_fit.in ; cat <<< ${blocks}; cat <<< $_sld_hab_block ) > ${O}/csf_fit.txt
 (cat ${SOC}/csf_spl.in ; cat <<< $_spl_hab_block) > ${O}/csf_spl.txt
 
+eval $(awk '(/csf_off|sld_csf_off/)&&(!/fit-fdt/)&&($0=$1"="$2)' ${SOC}/flash_evk.log)
+eval $(awk '(/fit-fdt csf_off/)&&($0="fit_fdt_csf_off="$NF)' ${SOC}/flash_evk.log)
+
 ${CST} -i ${O}/csf_spl.txt -o ${O}/csf_spl.bin
+dd if=${O}/csf_spl.bin of=${ofile} seek=$((${csf_off})) bs=1 conv=notrunc
+
 ${CST} -i ${O}/csf_fit.txt -o ${O}/csf_fit.bin
+dd if=${O}/csf_fit.bin of=${ofile} seek=$((${sld_csf_off})) bs=1 conv=notrunc
 
-eval $(awk '(/csf_off|sld_csf_off/)&&(gsub(/ /,"_",$1))&&($0=$1"="$2)' ${SOC}/flash_evk.log)
-
-cp ${SOC}/${ifile} ${O}/${ofile}
-
-dd if=${O}/csf_spl.bin of=${O}/${ofile} seek=$((${csf_off})) bs=1 conv=notrunc
-dd if=${O}/csf_fit.bin of=${O}/${ofile} seek=$((${sld_csf_off})) bs=1 conv=notrunc
-
-ln -sf ${ofile} ${O}/signed
+ln -sf $(basename ${ofile}) ${O}/signed
