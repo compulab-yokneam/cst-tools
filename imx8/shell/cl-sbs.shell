@@ -1,0 +1,2 @@
+WORKDIR=$(dirname $(readlink -e ${BASH_SOURCE[0]}))
+bash --rcfile ${WORKDIR}/cl-sbs.rc
