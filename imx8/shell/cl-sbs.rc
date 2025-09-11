@@ -11,10 +11,6 @@ do_make() {
 make -C ${SB_ROOT} ${@}
 }
 
-make_help() {
-make -C ${SB_ROOT} help
-}
-
 backup_keys() {
 pushd ${SB_ROOT}
 local back_up="${SB_ROOT}/bakup.d/$(date +%Y%m%d%H%M%S)"
@@ -28,9 +24,14 @@ local back_up="${SB_ROOT}/bakup.d"
 rm -rf ${back_up}/*
 }
 
-generate_new_keys() {
+remove_keys() {
 backup_keys
-make -C ${SB_ROOT} clean_keys clean_crts
+make -C ${SB_ROOT} clean_keys
+make -C ${SB_ROOT} clean_crts
+}
+
+generate_new_keys() {
+remove_keys
 make -C ${SB_ROOT} srk
 }
 
@@ -48,11 +49,6 @@ make -C ${SB_ROOT} uefi
 
 make_clean() {
 make -C ${SB_ROOT} clean
-}
-
-get_boot_device() {
-dev_name=${boot_device:-"/dev/mmcblk0boot0"}
-echo -n ${dev_name}
 }
 
 show_backups() {
@@ -86,38 +82,55 @@ show_status() {
 	show_backups
 }
 
+issue_cl_uboot() {
+	if [[ -n ${1:-""} ]];then
+		SRC=$(readlink -e ${signed_items[imx-boot]}) cl-uboot
+		return 0
+	fi
+	local _usage=""
+	if [[ -f ${signed_items[imx-boot]} ]];then
+		_usage+="~b -- cl-ubot";
+cat << eof
+--
+${_usage}
+eof
+	fi
+}
+
 usage () {
 cat << eof
 
 -= Secure Boot Shell Menu =-
 
 a -- Make all
-b -- Make bootloader
-i -- Make kernel image
-f -- Make fuse file
-g -- Make grub
-R -- Remove all signed images
+--
+b -- Make signed bootloader
+i -- Make signed kernel image
+f -- Make signed fuse file
+g -- Make signed grub
+C -- Remove all signed images
 --
 k -- Generate new keys
 K -- Remove keys
 --
 u -- Back up keys
 U -- Clean up back up keys
---
 X -- Exit
+$(issue_cl_uboot)
 
 $(show_status)
 
 eof
 }
 
-PS1='$(usage)\n\nsecureboot ( device: $(get_boot_device) ) > '
+PS1='$(usage)\n\nsecureboot-shell > '
 set -m
 
 alias a='do_make all'
 
 alias b='do_make imx-boot'
 alias B='remove_signed imx-boot'
+alias ~b="issue_cl_uboot imx-boot"
 
 alias i='do_make kernel'
 alias I='remove_signed kernel'
@@ -131,7 +144,7 @@ alias G='remove_signed uefi'
 alias C='do_make clean'
 
 alias k='generate_new_keys'
-alias K='do_make clean_keys'
+alias K='remove_keys'
 
 alias u='backup_keys'
 alias U='backup_keys_remove'
