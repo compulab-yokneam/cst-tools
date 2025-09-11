@@ -1,0 +1,139 @@
+SB_ROOT=/opt/cst
+
+unset signed_items
+declare -A signed_items
+signed_items[kernel]=${SB_ROOT}/hab/signed/k/signed
+signed_items[imx-boot]=${SB_ROOT}/hab/signed/u/signed
+signed_items[grub]=${SB_ROOT}/hab/signed/uefi/signed
+signed_items[fuse]=${SB_ROOT}/hab/signed/f/fuse.out
+
+do_make() {
+make -C ${SB_ROOT} ${@}
+}
+
+make_help() {
+make -C ${SB_ROOT} help
+}
+
+backup_keys() {
+pushd ${SB_ROOT}
+local back_up="${SB_ROOT}/bakup.d/$(date +%Y%m%d%H%M%S)"
+mkdir -p ${back_up}
+cp -a ${SB_ROOT}/{keys,crts} ${back_up}/
+popd
+}
+
+backup_keys_remove() {
+local back_up="${SB_ROOT}/bakup.d"
+rm -rf ${back_up}/*
+}
+
+generate_new_keys() {
+backup_keys
+make -C ${SB_ROOT} clean_keys clean_crts
+make -C ${SB_ROOT} srk
+}
+
+make_kernel() {
+make -C ${SB_ROOT} kernel
+}
+
+make_fusel() {
+make -C ${SB_ROOT} fuse
+}
+
+make_uefi() {
+make -C ${SB_ROOT} uefi
+}
+
+make_clean() {
+make -C ${SB_ROOT} clean
+}
+
+get_boot_device() {
+dev_name=${boot_device:-"/dev/mmcblk0boot0"}
+echo -n ${dev_name}
+}
+
+show_backups() {
+local saved_keys="$([[ -d ${SB_ROOT}/bakup.d ]] && ls ${SB_ROOT}/bakup.d | awk ''1 ORS=" ; " || echo "--")"
+cat << eof
+Saved keys:
+	${saved_keys}
+eof
+}
+
+remove_signed() {
+[[ -f ${signed_items[${1}]} ]] && rm -rf ${signed_items[${1}]} || true
+}
+
+show_signed() {
+status=""
+for item in ${!signed_items[@]};do
+status+=" ${item} "
+[[ -f ${signed_items[${item}]} ]] && status+="[ ok ]" || status+="[ - ]"
+status+=" ; "
+done
+
+cat << eof
+Signed items:
+	${status}
+eof
+}
+
+show_status() {
+	show_signed
+	show_backups
+}
+
+usage () {
+cat << eof
+
+-= Secure Boot Shell Menu =-
+
+a -- Make all
+b -- Make bootloader
+i -- Make kernel image
+f -- Make fuse file
+g -- Make grub
+R -- Remove all signed images
+--
+k -- Generate new keys
+K -- Remove keys
+--
+u -- Back up keys
+U -- Clean up back up keys
+--
+X -- Exit
+
+$(show_status)
+
+eof
+}
+
+PS1='$(usage)\n\nsecureboot ( device: $(get_boot_device) ) > '
+set -m
+
+alias a='do_make all'
+
+alias b='do_make imx-boot'
+alias B='remove_signed imx-boot'
+
+alias i='do_make kernel'
+alias I='remove_signed kernel'
+
+alias f='do_make fuse'
+alias F='remove_signed fuse'
+
+alias g='do_make uefi'
+alias G='remove_signed uefi'
+
+alias C='do_make clean'
+
+alias k='generate_new_keys'
+alias K='do_make clean_keys'
+
+alias u='backup_keys'
+alias U='backup_keys_remove'
+
+alias X='exit'
