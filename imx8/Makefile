@@ -80,8 +80,10 @@ TARGET=hab/flash.bin-with_conf
 $(TARGET):
 	make -C hab $(notdir $@)
 
-prebuild:
+hab_extra:
 	make -C hab extra
+
+prebuild: hab_extra
 	$(eval LADDR=$(shell grep CONFIG_SYS_LOAD_ADDR hab/.config | cut -d"=" -f 2))
 
 build: prebuild kernel imx-boot uefi fuse
