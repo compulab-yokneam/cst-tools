@@ -1,12 +1,3 @@
-CONF := hab/.config
-
-ifeq ($(shell test -e ${CONF} && echo yes),)
-    $(error "U-Boot conf file is missing")
-endif
-
-LADDR := $(shell grep CONFIG_SYS_LOAD_ADDR ${CONF} | cut -d"=" -f 2)
-$(if $(LADDR),,$(error "CONFIG_SYS_LOAD_ADDR calculation failed"))
-
 all: build
 
 help:
@@ -71,6 +62,7 @@ uefi: srk crts/SRK_1_2_3_4_*.bin hab/signed/uefi/signed
 
 clean:
 	rm -rf hab/signed
+	make -C hab rm_extra
 
 clean_keys:
 	cd keys && rm -rf `ls | grep -v "\.sh"`
@@ -83,4 +75,13 @@ clean_all: clean clean_keys clean_crts
 clean_yocto:
 	rm -rf ca crts linux64 keys tools hab
 
-build: kernel imx-boot uefi fuse
+TARGET=hab/flash.bin-with_conf
+
+$(TARGET):
+	make -C hab $(notdir $@)
+
+prebuild:
+	make -C hab extra
+	$(eval LADDR=$(shell grep CONFIG_SYS_LOAD_ADDR hab/.config | cut -d"=" -f 2))
+
+build: prebuild kernel imx-boot uefi fuse
