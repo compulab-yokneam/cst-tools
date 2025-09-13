@@ -15,6 +15,9 @@ $(TARGET): .config flash_evk.log print_fit_hab.log
 extra:	flash.bin
 	@dd if=flash.bin bs=512 skip=$(DATA_OFFS) 2>/dev/null | tar -xzf -
 
+test:	flash.bin
+	@dd if=flash.bin bs=512 skip=$(DATA_OFFS) 2>/dev/null | tar -tzf -
+
 rm_extra:
 	rm -rf .config flash_evk.log print_fit_hab.log
 
